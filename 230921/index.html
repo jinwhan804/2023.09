@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+    
+</body>
+<script>
+    // RPC 통신을 편하게 사용할 수 있게 도와주는 web3 라이브러리. 이더리움 제단에서 지원
+    const web3 = new Web3('http://127.0.0.1:8545');
+
+    web3.eth.getBalance("0x35aF6559e7eB9D62c06d815586a3c3007D6b4B06").then((data)=>{
+        console.log(data);
+        const value = web3.utils.fromWei(data);
+        console.log(value);
+    })
+
+    // web3.eth.sendTransaction({
+    //     from : "0x9551C34EFd66Bfd64778af8eA1EBCC6265843a83",
+    //     to : "0xA902a3F29db2e6c99b603f6e45a6Cf9635c32A12",
+    //     // 10 eth를 wei 단위로 변환
+    //     value : web3.utils.toWei("10","ether")
+    // }).then(console.log);
+
+    // (0) 0x35aF6559e7eB9D62c06d815586a3c3007D6b4B06 (100 ETH)
+    // (1) 0x197EB90EB79DE9001daEFe59a56c87d00b304Dad (100 ETH)
+    // (2) 0x77947bfAD70A7446401b9e326baBb9C07BDD767e (100 ETH)
+    // (3) 0xd7b58Ae1159CE421D8bc8221627631F82e77ad14 (100 ETH)
+    // (4) 0x26085f898BF7e1905091FC4DB53519C219EE8027 (100 ETH)
+    // (5) 0x0D7B0045CF2c0E56A4FcE41fDDEde8403A7Ea6A1 (100 ETH)
+    // (6) 0xeF5B2e4027da04eAeE1FB06fb154966d4E037CAa (100 ETH)
+    // (7) 0x370Fc322db07C74454c99cA9B9d8EA5c2eb1c0D7 (100 ETH)
+    // (8) 0xdCa0b2d15c7e1dAAB5a16b2E00B6cE8a1a4A552d (100 ETH)
+    // (9) 0x85E2b5Cd2f7Af1816181Dea2F055105273915DE2 (100 ETH)
+
+    // CA 생성, 솔리디티로 작성한 코드를 스마트 컨트랙트 배포
+    web3.eth.sendTransaction({
+        from : "0x35aF6559e7eB9D62c06d815586a3c3007D6b4B06",
+        gas : "300000",
+        data : "60806040523480156100115760006000fd5b505b5b610019565b61016b806100286000396000f3fe60806040523480156100115760006000fd5b506004361061003b5760003560e01c80632096525514610041578063552410771461005f5761003b565b60006000fd5b61004961007b565b60405161005691906100f2565b60405180910390f35b610079600480360381019061007491906100b7565b61008d565b005b6000600060005054905061008a565b90565b8060006000508190909055505b5056610134565b6000813590506100b081610119565b5b92915050565b6000602082840312156100ca5760006000fd5b60006100d8848285016100a1565b9150505b92915050565b6100eb8161010e565b82525b5050565b600060208201905061010760008301846100e2565b5b92915050565b60008190505b919050565b6101228161010e565b811415156101305760006000fd5b5b50565bfea2646970667358221220311889503c865cd39512578c8c34436d5b0b69e153b5a559f9b98584ad73cec964736f6c63430008000033"
+    }).then(console.log)
+
+    // contractAddress : "0xd2CCF41f7AA40543476Ad00fFDCabD1dD775A34A"
+    // CA 매핑되어 있는 코드가 활성화되고 컨트랙트 코드가 실행된다.
+    
+    // call과 send
+
+    // 트랜잭션을 발생시킬 때는 send
+    // 조회를 할 때는 call로 값을 조회
+</script>
+</html>

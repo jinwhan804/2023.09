@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>최초 블록</h1>
+    <h1>초기 제네시스 블록은 하드 코딩으로 직접 만들어준다.</h1>
+    <div>
+        <div id="block">
+            <label for="">블록 버전(버전 초기 값)</label>
+            <h3 id="version"></h3>
+            <label for="">블록 높이(최초 블록은 0번)</label>
+            <h3 id="height"></h3>
+            <label for="">블록 생성 시간</label>
+            <h3 id="timestamp"></h3>
+            <label for="">이전 블록의 해시(최초 블록이라 이전 블록 해시를 0으로 대체)</label>
+            <h3 id="previoushash"></h3>
+            <label for="">블록 해시(최초 블록이라 해시 0으로 대체)</label>
+            <h3 id="hash"></h3>
+            <label for="">머클루트(최초의 블록이므로 머클루트 0으로 대체)</label>
+            <h3 id="merkleRoot"></h3>
+            <label for="">논스 (블록 생성 시 연산 횟수)</label>
+            <h3 id="nonce"></h3>
+            <label for="">난이도(블록 생성 주기를 조절하기 위한 값)</label>
+            <h3 id="difficulty"></h3>
+            <label for="">블록 내용(실제 비트코인 최초 블록의 내용)</label>
+            <h3 id="data"></h3>
+        </div>
+    </div>
+</body>
+<script>
+    // 초기 제네시스 블록 하드코딩
+    const blockData = {
+        version : '1.0.0',
+        height : 0,
+        timestamp : Date.now(),
+        previoushash : '0'.repeat(64),
+        hash : '0'.repeat(64),
+        merkleRoot : '0'.repeat(64),
+        nonce : 0,
+        difficulty : 0,
+        data : ["The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"]
+    }
+
+    for (const key in blockData) {
+        block.children[key].innerHTML = blockData[key];
+    }
+</script>
+</html>

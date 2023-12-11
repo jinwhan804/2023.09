@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+    <ul id="Accounts"></ul>
+
+    <div>
+        <label for="">use Account</label><br>
+        <input type="text" id="useAccount"><br>
+        <label for="">use Contract</label><br>
+        <textarea name="" id="contract" cols="30" rows="10"></textarea><br>
+        <button id="sendTransactionBtn">컨트랙트 배포</button>
+        
+        <div>카운트 앱</div>
+        <div id="counterValue"></div>
+        <button id="callBtn">조회</button>
+        <button id="sendBtn">증가</button>
+        <button id="sendBtn2">감소</button>
+    </div>
+</body>
+<script>
+    // 네트워크 연결
+    // ganache === http://127.0.0.1:8545
+    const web3 = new Web3("http://127.0.0.1:8545");
+
+    // getAccounts == 네트워크 계정들 조회
+    web3.eth.getAccounts().then((data)=>{
+        let items = '';
+        data.forEach(async(i) => {
+            // getBalance : wei 단위로 계정 잔액 조회
+            const balance = await web3.eth.getBalance(i);
+
+            // fromWei : wei 단위를 eth로 단위 변경 
+            const eth_balance = await web3.utils.fromWei(balance)
+            items += `<li>${i} : ${eth_balance} ETH </li>`;
+            Accounts.innerHTML = items;
+        });
+    })
+
+    // 컨트랙트 배포
+    // 코드 배포는 node 환경에 (npx solc --bin --abi 솔리디티 파일 경로) 입력으로 
+    // 컨트랙트 배포 시 수수로를 지불할 컨트랙트 배포자 계정 설정 필요
+    // bin 컴파일된 컨트랙트 코드 내용 
+    // 트랜잭션 생성
+    sendTransactionBtn.onclick = ()=>{
+        web3.eth.sendTransaction({
+            // 컨트랙트 배포 계정
+            from : useAccount.value,
+            //  gas 제한량
+            gas : "3000000",
+            // 컴파일된 컨트랙트 바이트 코드
+            data : contract.value
+        }).then(console.log);
+        // 컨트랙트 배포 후 트랜잭션 처리가 되면 응답으로 컨트랙트 주소를 주는데 이게 CA
+        // 첫 번째 계정에 대한 CA : "0xb2958FDA44092184680B715fAe538FBC573f896B"
+    }
+
+    // 배포한 컨트랙트 실행
+    // abi를 사용하여 컨트랙트 코드를 정의하고 실행
+    // interface
+    // 코드를 활성화 시켜서 사용할 때 정의한 구조대로 사용하기 위해
+    const abi = [
+        { inputs: [], stateMutability: "nonpayable", type: "constructor" },
+        // 생성자 함수 
+        // inputs : 매개 변수
+        // stateMutability : "nonpayable"일 경우 이더리움을 받지 않는 상태 전환 함수
+        // type : constructor 생성자 함수 타입
+
+        { inputs: [], 
+            // 함수명
+            name: "getValue", 
+            // outputs : 출력 내용
+            // internalType : 상태 변수 함수의 값에 대한 타입
+            // name : 사용하는 매개 변수 이름
+            outputs: [{ internalType: "uint256", name: "", type: "uint256" }], 
+            // view : 상태 변환하지 않고 속성 조회만 하는 함수
+            stateMutability: "view", 
+            type: "function" 
+        },
+
+        { inputs: [{ internalType: "uint256", name: "_value", type: "uint256" }], 
+            name: "setValue", 
+            outputs: [], 
+            stateMutability: "nonpayable", 
+            type: "function" 
+        },
+    ];
+
+    // 카운트 값을 조회하는 함수
+    const getValue = async()=>{
+        // encodeFunctionCall : 16진수 문자열을 반환. 컨트랙트 함수 내용과 우리가 전달할 매개 변수를 전달해서 해시코드로 변환
+        // EVM에서 실행시킨다.
+        // 첫 번째 매개 변수는 abi의 내용, 실행시킬 함수의 interface
+        // 두 번째 매개 변수는 함수에 전달할 매개 변수 값
+        const getCodeHash = await web3.eth.abi.encodeFunctionCall(abi[1],[]);
+        console.log(getCodeHash);
+        // call : 읽기 전용, 원격 프로시저 호출 값 조회
+        const data = await web3.eth.call({
+            to : "0xb2958FDA44092184680B715fAe538FBC573f896B",
+            data : getCodeHash
+        })
+        console.log(data);
+        // data에 16진수로 변환된 값이 넘어온다.
+        const result = await web3.utils.toBN(data).toString(10);
+        console.log(result);
+
+        counterValue.innerHTML = result;
+        return parseInt(result);
+    };
+
+    getValue();
+
+    callBtn.onclick = getValue;
+
+    // 상태 변수 변경
+    const setValue = async() =>{
+        const _getValue = await getValue();
+        const setCodeHash = await web3.eth.abi.encodeFunctionCall(abi[2],[_getValue + 1]);
+        console.log(setCodeHash);
+
+        if(!useAccount.value) return alert("Account 입력 안 됨");
+        const tx = {
+            from : useAccount.value,
+            to : "0xb2958FDA44092184680B715fAe538FBC573f896B",
+            data : setCodeHash,
+            gas : 50000,
+            gasPrice : 2000000
+        };
+
+        const data = await web3.eth.sendTransaction(tx);
+        console.log(data);
+
+        getValue();
+    };
+
+    sendBtn.onclick = setValue;
+
+    const setValue2 = async() =>{
+        const _getValue = await getValue();
+        const setCodeHash = await web3.eth.abi.encodeFunctionCall(abi[2],[_getValue - 1]);
+        console.log(setCodeHash);
+
+        if(!useAccount.value) return alert("Account 입력 안 됨");
+        const tx = {
+            from : useAccount.value,
+            to : "0xb2958FDA44092184680B715fAe538FBC573f896B",
+            data : setCodeHash,
+            gas : 50000,
+            gasPrice : 2000000
+        };
+
+        const data = await web3.eth.sendTransaction(tx);
+        console.log(data);
+
+        getValue();
+    };
+
+    sendBtn2.onclick = setValue2;
+
+    // Available Accounts
+    // ==================
+    // (0) 0xd870026BCef7A0B52F5Dd27F23d4dEC82693cc86 (100 ETH)
+    // (1) 0x813b1B0c70633C82a4D5d72619728bA6eBaCd4ad (100 ETH)
+    // (2) 0x48B162415518e4A9918576bf9D9F880BDBcadbad (100 ETH)
+    // (3) 0xD2B14D38e4a25938C7EDf27F0DdB7E932031b88e (100 ETH)
+    // (4) 0xFE3f82eB30aB10298C94F2D488819eC43917B146 (100 ETH)
+    // (5) 0xFf3473e3Fe64D641C6d448a2e8849d30cc9dECde (100 ETH)
+    // (6) 0xD11Dba548E8f1082c63f10B057172c502B736E2e (100 ETH)
+    // (7) 0x2b42771E6fEb83cf8d6cE7289c430CB4B1c83AE4 (100 ETH)
+    // (8) 0x0Aa98a5d9A334F2a3e51D61aDefb76399F0AC4aC (100 ETH)
+    // (9) 0xBC33946C58d72344E3c5BBEC55AF45a48634d795 (100 ETH)
+
+    // Private Keys
+    // ==================
+    // (0) 0x15cf7621fcbb5d8e34d887614ce5bc857074b9738b35d92e4ab43d3925c3341a
+    // (1) 0x535e6f40ca8c7bea7b6866b02d22631c54daa7ce4ad6d812d9008c8baf9df921
+    // (2) 0x35155336ebe5c8edf7ae9a203f6fc983d9439b6f49346b13b2acf4126f058154
+    // (3) 0x97d9464d2a592191b02374d95226c5b33233410c5903878ece913dc9fcc7a76b
+    // (4) 0x22c5dbfff1f69210c0440b8a489bf0abf11fbc2321d8eb34da5ba3f31e1c5bfb
+    // (5) 0x617e500cc181f389259310017f3ba4eb901fadacdadfafbfb0985449e5fe4358
+    // (6) 0x22f277b578169b7cf8b8cd42c2e2b9901a35446876974b82a4f5987ced402b3b
+    // (7) 0x90e5476b649ca05618bfcc9be3f912266e9b3cda91e79b1fa667d23790507934
+    // (8) 0xd07c8c0615a6c234940f11eff1b5fe9ef0511e5a836a6c425258643ac67a5366
+    // (9) 0x4a3ee8af73355c4f43aa8c62f2e6b156f7cf1f3d5f67551e18d739f5fa0356d0
+
+</script>
+</html>
